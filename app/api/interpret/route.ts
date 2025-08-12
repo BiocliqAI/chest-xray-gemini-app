@@ -4,17 +4,20 @@ import { generateText } from "ai"
 
 export async function POST(req: NextRequest) {
   try {
-    if (!process.env.GOOGLE_GENERATIVE_AI_API_KEY) {
-      return new NextResponse("Missing GOOGLE_GENERATIVE_AI_API_KEY. Add it in your project settings and redeploy.", {
-        status: 500,
-      })
-    }
-
     const form = await req.formData()
     const file = form.get("image") as File | null
     const prompt = String(form.get("prompt") || "")
     const model = String(form.get("model") || "gemini-2.5-flash") as "gemini-2.5-flash" | "gemini-2.5-pro"
     const thinkingBudget = Number(form.get("thinkingBudget") || 0)
+    const apiKey = String(form.get("apiKey") || "")
+
+    // Check for API key - prioritize user-provided key, fallback to environment variable
+    const geminiApiKey = apiKey || process.env.GOOGLE_GENERATIVE_AI_API_KEY
+    if (!geminiApiKey) {
+      return new NextResponse("Missing Gemini API key. Please provide your API key in the settings.", {
+        status: 400,
+      })
+    }
 
     const contentParts: any[] = []
     if (prompt) {
@@ -32,7 +35,9 @@ export async function POST(req: NextRequest) {
     }
 
     const { text } = await generateText({
-      model: google(model),
+      model: google(model, {
+        apiKey: geminiApiKey,
+      }),
       messages: [
         {
           role: "user",

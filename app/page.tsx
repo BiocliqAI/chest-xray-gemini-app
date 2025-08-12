@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useMemo, useRef, useState } from "react"
+import { useCallback, useMemo, useRef, useState, useEffect } from "react"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
@@ -23,6 +23,7 @@ import {
   Flag,
   Hash,
   Info,
+  Key,
   Loader2,
   RefreshCw,
   ShieldAlert,
@@ -63,6 +64,24 @@ export default function Page() {
   const [report, setReport] = useState<string>("")
   const [error, setError] = useState<string>("")
   const [seed, setSeed] = useState<number>(Date.now())
+  const [apiKey, setApiKey] = useState<string>("")
+
+  // Load API key from localStorage on mount
+  useEffect(() => {
+    const savedApiKey = localStorage.getItem("gemini-api-key")
+    if (savedApiKey) {
+      setApiKey(savedApiKey)
+    }
+  }, [])
+
+  // Save API key to localStorage when it changes
+  useEffect(() => {
+    if (apiKey) {
+      localStorage.setItem("gemini-api-key", apiKey)
+    } else {
+      localStorage.removeItem("gemini-api-key")
+    }
+  }, [apiKey])
 
   const onFile = useCallback((f: File | null) => {
     setFile(f)
@@ -116,6 +135,13 @@ export default function Page() {
     abortRef.current?.abort()
     abortRef.current = new AbortController()
 
+    // Validate API key
+    if (!apiKey.trim()) {
+      setError("Please provide your Gemini API key in the settings above.")
+      setIsLoading(false)
+      return
+    }
+
     try {
       const body = new FormData()
       if (file) body.append("image", file)
@@ -123,6 +149,7 @@ export default function Page() {
       body.append("model", model)
       body.append("thinkingBudget", String(thinkingBudget))
       body.append("seed", String(seed))
+      body.append("apiKey", apiKey)
 
       const res = await fetch("/api/interpret", {
         method: "POST",
@@ -142,7 +169,7 @@ export default function Page() {
     } finally {
       setIsLoading(false)
     }
-  }, [file, prompt, model, thinkingBudget, seed])
+  }, [file, prompt, model, thinkingBudget, seed, apiKey])
 
   const handleCopy = useCallback(async () => {
     try {
@@ -331,6 +358,35 @@ export default function Page() {
               <CardTitle className="text-base">Settings</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
+              <div className="space-y-2 rounded-lg border border-amber-200/80 dark:border-amber-900/40 bg-amber-50/50 dark:bg-amber-950/30 p-4">
+                <Label htmlFor="apiKey" className="flex items-center gap-2">
+                  <Key className="h-4 w-4 text-amber-600" />
+                  Gemini API Key
+                </Label>
+                <div className="relative">
+                  <Key className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-amber-600/70" />
+                  <Input
+                    id="apiKey"
+                    type="password"
+                    value={apiKey}
+                    onChange={(e) => setApiKey(e.target.value)}
+                    placeholder="Enter your Gemini API key"
+                    className="pl-9"
+                  />
+                </div>
+                <p className="text-xs text-amber-700 dark:text-amber-300">
+                  Get your free API key from{" "}
+                  <a 
+                    href="https://aistudio.google.com/app/apikey" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="underline hover:no-underline"
+                  >
+                    Google AI Studio
+                  </a>. Your key is stored locally and never sent to our servers.
+                </p>
+              </div>
+
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2 rounded-lg border border-stone-200/80 dark:border-stone-800 p-4">
                   <Label className="flex items-center gap-2">
@@ -439,7 +495,7 @@ export default function Page() {
               <Button
                 className="w-full sm:w-auto gap-2 bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600"
                 onClick={handleSubmit}
-                disabled={isLoading}
+                disabled={isLoading || !apiKey.trim()}
               >
                 {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <CloudUpload className="h-4 w-4" />}
                 Generate report
