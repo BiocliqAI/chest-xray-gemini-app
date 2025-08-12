@@ -1,0 +1,60 @@
+import { useState } from "react";
+import { cn } from "@/lib/utils";
+import { FileDropzone } from "@/components/file-dropzone";
+import { CardContent, CardFooter } from "@/components/ui/card";
+import { Switch } from "@/components/ui/switch";
+
+export default function Page() {
+  const [file, setFile] = useState<File | null>(null);
+  const [compactMode, setCompactMode] = useState(false);
+
+  const onFile = (file: File | null) => {
+    setFile(file);
+  };
+
+  return (
+    <div className={cn("mx-auto max-w-6xl", compactMode ? "px-3 py-6 sm:px-4 sm:py-8" : "px-4 py-8")}>
+      <div className={cn("grid lg:grid-cols-2", compactMode ? "gap-4 sm:gap-6 mt-4 sm:mt-6" : "gap-6 mt-6")}>
+        <div className={cn("grid sm:grid-cols-[1fr_auto]", compactMode ? "gap-2 sm:gap-3" : "gap-3")}>
+          <FileDropzone
+            value={file}
+            onFile={onFile}
+            accept={["image/jpeg", "image/png", "image/webp", "image/heic", "image/heif", "image/jpg"]}
+            maxSizeMB={20}
+            dense={compactMode}
+          />
+          {/* Other content here */}
+        </div>
+        <div className={cn("grid sm:grid-cols-3", compactMode ? "gap-3 sm:gap-4" : "gap-4")}>
+          {/* Age/Sex/Views content here */}
+        </div>
+      </div>
+      <div className={cn("rounded-lg border", compactMode ? "p-3 sm:p-4" : "p-4")}>
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="text-sm font-medium">Compact mode</div>
+            <div className="text-xs text-muted-foreground">Reduce paddings on mobile for a denser layout.</div>
+          </div>
+          <Switch checked={compactMode} onCheckedChange={setCompactMode} />
+        </div>
+      </div>
+      <div className={cn("rounded-lg border", compactMode ? "p-3 sm:p-4" : "p-4")}>
+        <CardContent className={cn(compactMode ? "space-y-4 sm:space-y-6" : "space-y-6")}>
+          {/* Settings content here */}
+        </CardContent>
+      </div>
+      <div className={cn("grid sm:grid-cols-3 gap-3", compactMode ? "px-3 py-2.5 sm:px-4 sm:py-3" : "px-4 py-3")}>
+        {/* Report sections content here */}
+      </div>
+      <div className={cn("rounded-lg border", compactMode ? "p-3 sm:p-4" : "p-4")}>
+        {/* Model and Thinking sections content here */}
+      </div>
+      <div className={cn("rounded-lg border bg-emerald-50/50 text-sm text-emerald-900", compactMode ? "p-3 sm:p-4" : "p-4")}>
+        {/* Disclaimer content here */}
+      </div>
+      <CardFooter className={cn("flex flex-col sm:flex-row", compactMode ? "gap-2 sm:gap-3" : "gap-3")}>
+        {/* Footer buttons content here */}
+      </CardFooter>
+    </div>
+  );
+}
