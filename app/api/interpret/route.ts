@@ -13,6 +13,7 @@ export async function POST(req: NextRequest) {
 
     // Debug logging
     console.log("Received API key length:", apiKey.length)
+    console.log("API key starts with:", apiKey.substring(0, 10))
     console.log("Has env API key:", !!process.env.GOOGLE_GENERATIVE_AI_API_KEY)
     
     // Check for API key - prioritize user-provided key, fallback to environment variable
@@ -24,6 +25,7 @@ export async function POST(req: NextRequest) {
     }
     
     console.log("Using API key length:", geminiApiKey.length)
+    console.log("Final API key starts with:", geminiApiKey.substring(0, 10))
 
     const contentParts: any[] = []
     if (prompt) {
@@ -42,10 +44,13 @@ export async function POST(req: NextRequest) {
 
     console.log("About to call generateText with model:", model)
     
+    // Initialize the google provider with the API key
+    const googleProvider = google({
+      apiKey: geminiApiKey,
+    })
+    
     const { text } = await generateText({
-      model: google(model, {
-        apiKey: geminiApiKey,
-      }),
+      model: googleProvider(model),
       messages: [
         {
           role: "user",

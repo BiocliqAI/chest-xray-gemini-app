@@ -142,6 +142,9 @@ export default function Page() {
       return
     }
 
+    console.log("Frontend - API key length:", apiKey.length)
+    console.log("Frontend - API key starts with:", apiKey.substring(0, 10))
+
     try {
       const body = new FormData()
       if (file) body.append("image", file)
@@ -150,6 +153,8 @@ export default function Page() {
       body.append("thinkingBudget", String(thinkingBudget))
       body.append("seed", String(seed))
       body.append("apiKey", apiKey)
+      
+      console.log("Frontend - About to send request with API key")
 
       const res = await fetch("/api/interpret", {
         method: "POST",
