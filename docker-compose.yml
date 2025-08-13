@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  chest-xray-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: chest-xray-gemini-app
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - HOSTNAME=0.0.0.0
+      - PORT=3000
+      # Optional: Add your Gemini API key as an environment variable
+      # - GOOGLE_GENERATIVE_AI_API_KEY=your_api_key_here
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    volumes:
+      # Optional: Mount a volume for persistent data (if needed)
+      - app-data:/app/data
+    networks:
+      - chest-xray-network
+
+networks:
+  chest-xray-network:
+    driver: bridge
+
+volumes:
+  app-data:
+    driver: local
